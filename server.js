@@ -53,8 +53,9 @@ Latest toSubmission : ${latestLog.toSubmission}
 
     const dateDiffByDay = dateDiffInDays(new Date(), latestLog.toSubmission);
     if(dateDiffByDay > 0) {
-        //크롤링 시작
-        await crawlGisaid(addOneDayToDate(latestLog.toSubmission), new Date(), gisaidCovMetaData);
+        const crawler = new GisaidCrawler(latestLog.toSubmission, new Date(), gisaidCovMetaData);
+        await crawler.crawlGisaid();
+        
     } else if(dateDiffByDay < 0) {
         //예외 :: 마지막 크롤링 범위가 현재 시간보다 앞서는 경우
     } else {
