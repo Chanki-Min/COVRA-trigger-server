@@ -13,8 +13,10 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "lodash": "^4.17.19",
-    "mongoose": "^5.9.26",
+    "mongodb": "^3.6.0",
+    "node-gzip": "^1.1.2",
     "puppeteer": "^5.2.1",
+    "tar": "^6.0.2",
     "user-agents": "^1.0.559"
   }
 }
