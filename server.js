@@ -1,7 +1,9 @@
 const _ = require('lodash');
 require('dotenv').config();
 require('./utils.js')();
-require('./crawler.js')();
+//require('./crawler.js')();
+const GisaidCrawler = require('./GisaidCrawler');
+
 
 const schedule = require('node-schedule');
 const GISAID_CRON = process.env.CRWALER_GISALD_CRON;
