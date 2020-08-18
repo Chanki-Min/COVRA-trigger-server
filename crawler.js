@@ -3,6 +3,10 @@ const userAgent = require('user-agents');
 const puppeteer = require("puppeteer");
 const {gzip, ungzip} = require('node-gzip');
 const fs = require('fs');
+const { exception } = require('console');
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+
 require('dotenv').config();
 require('./utils')();
 
@@ -37,27 +41,87 @@ module.exports = function() {
             }
 
             //테스트용임
-            const latestId = "EPI_ISL_512664"
+            const latestId = (await this.findLatestMetaData()).gisaid_epi_isl;
             const newDataList = processCsvAndReturnUpdatedData(csvFileBuffer, '\t', '\n', sortColumn, latestId, generateCompareator);
 
             //데이터를 DB에 저장한다
-
-            //데이터를 action으로 전송한다
+            if(newDataList.length != 0) {
+                this.insertManyMetaData(newDataList);
+                //데이터를 action으로 전송한다
         
+            }
             this.closeMongoDB();
         }
 
         async connectMongoDB() {
             this.client = await MongoClient.connect(process.env.MONGO_URL, {useNewUrlParser : true, useUnifiedTopology : true})
-                .catch(error => console.error(error));   
+                .catch(e => console.error(e));
+              
 
-            this.gisaidDB = client.db(process.env.MONGO_GISAID_DB_NAME = "gisaid");
+            this.gisaidDB = this.client.db(process.env.MONGO_GISAID_DB_NAME);
         }
 
         async closeMongoDB() {
             await this.client.close();
             this.client = undefined;
             this.gisaidDB = undefined;
+        }
+        
+        
+
+        /**
+         * 새로운 데이터 리스트를 삽입한다.
+         * 
+         * @param {Array} metaDataList 
+         */
+        insertManyMetaData(metaDataList) {
+            if(! (metaDataList instanceof Array)) {
+                throw new exception(`insertManyMetaData function requires Array, current type : ${typeof metaDataList}`);
+            }
+
+            const collection = this.gisaidDB.collection(process.env.MONGO_GISAID_COLLECTION_METADATA);
+
+            collection.insertMany(metaDataList, function(err, result) {
+                if(err != null) {
+                    console.log(err, result);
+                }
+                assert(metaDataList.length, result.insertedCount);
+                console.log(`${result.insertedCount} data inserted successfully to ${process.env.MONGO_GISAID_DB_NAME}/${process.env.MONGO_GISAID_COLLECTION_METADATA} collection`);
+            });
+
+        }
+
+        insertMetaData(metaData) {
+            const collection = this.gisaidDB.collection(process.env.MONGO_GISAID_COLLECTION_METADATA);
+            collection.insertOne(metaData, function(err, result) {
+                if(err != null) {
+                    console.log(err, result);
+                }
+                assert(metaData.length, result.insertedCount);
+            });
+        }
+
+        /**
+         * 
+         * @returns {Object} : 가장 높은 epi_isl을 가진 메타데이터
+         */
+        async findLatestMetaData() {
+            const collection = this.gisaidDB.collection(process.env.MONGO_GISAID_COLLECTION_METADATA);
+            const agg = [
+                {
+                  '$sort': {
+                    'gisaid_epi_isl': -1
+                  }
+                }, {
+                  '$limit': 1
+                }
+              ]
+
+            const aggregateCursor = collection.aggregate(agg, null);
+
+            const result = await aggregateCursor.next();
+            aggregateCursor.close();
+            return result;
         }
 
         async startPuppeteer(enableDevtools = false) {
