@@ -65,7 +65,7 @@ module.exports = function () {
                 dataList.length
             }, updated : ${lastRowIdx + 1}`
         );
-        return dataList.slice(0, lastRowIdx);
+        return dataList.slice(0, lastRowIdx+1);
     };
 
     /**
