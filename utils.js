@@ -57,8 +57,12 @@ module.exports = function () {
         });
 
         dataList = dataList.sort(compareatorGenerator(sortColumn));
-        const lastRowIdx =
+        let lastRowIdx =
             dataList.findIndex((elemnt) => elemnt[sortColumn] == latestId) - 1;
+
+        if(lastRowIdx+1 == -1) {
+            lastRowIdx = dataList.length-1;
+        }
 
         console.log(
             `Csv file parsing complete, total len : ${
