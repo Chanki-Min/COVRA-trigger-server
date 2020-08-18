@@ -13,7 +13,7 @@ const got = require("got");
 const { toInteger } = require("lodash");
 
 require("dotenv").config();
-require("./utils")();
+require("../utils")();
 
 module.exports = function () {
     this.GisaidCrawler = class {
