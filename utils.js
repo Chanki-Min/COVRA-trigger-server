@@ -20,7 +20,7 @@ module.exports = function () {
      * @param {Buffer} fileBuffer : 읽을 파일 버퍼
      * @param {string} rowToken : CSV파일의 행 분리자
      * @param {string} columnToken : CSV 파일의 열 분리자
-     * @param {string} sortColumn : 정렬 대상 컬럼
+     * @param {Array} sortColumnList : 정렬 대상 컬럼들이 담긴 리스트
      * @param {string} latestId : 대상 컬럼의 최신 아이디, 이것을 초과하는 것만 반환한다
      * @param {string} compareatorGenerator : 정렬 함수를 생성하는 함수
      */
@@ -28,7 +28,7 @@ module.exports = function () {
         fileBuffer,
         rowToken,
         columnToken,
-        sortColumn,
+        sortColumnList,
         latestId,
         compareatorGenerator
     ) {
@@ -37,7 +37,7 @@ module.exports = function () {
         const rowIndex = fileStr.split(columnToken, 1)[0];
         const rowData = fileStr.substring(rowIndex.length + 1, fileStr.length);
 
-        const indexArr = rowIndex.split(rowToken);
+        const indexArr = rowIndex.split(rowToken).map((str) => str.trim());
         let dataList = [];
 
         rowData.split(columnToken).map((row) => {
@@ -56,9 +56,9 @@ module.exports = function () {
             dataList.push(dataObj);
         });
 
-        dataList = dataList.sort(compareatorGenerator(sortColumn));
+        dataList = dataList.sort(compareatorGenerator(...sortColumnList));
         let lastRowIdx =
-            dataList.findIndex((elemnt) => elemnt[sortColumn] == latestId) - 1;
+            dataList.findIndex((elemnt) => elemnt[sortColumnList[0]] == latestId) - 1;
 
         if(lastRowIdx+1 == -1) {
             lastRowIdx = dataList.length-1;
