@@ -2,7 +2,6 @@ const _ = require("lodash");
 const userAgent = require("user-agents");
 const puppeteer = require("puppeteer");
 const MongoClient = require("mongodb").MongoClient;
-const assert = require("assert");
 const got = require("got");
 const { toInteger } = require("lodash");
 
@@ -54,7 +53,7 @@ class PuppeteerCrawler {
     async goToUrl(url) {
         await this.page.goto(url);
         //redirection 완료를 대기합니다.
-        await this.page.waitForNavigation();
+        await this.page.waitFor(5000);
     }
 
     async connectMongoDB() {
@@ -74,7 +73,7 @@ class PuppeteerCrawler {
         this.whoDB = undefined;
     }
 
-    async sendMetaDataList(metaDataList) {
+    async sendMetaDataList(metaDataList, iftttUrl) {
         const limitPerReq = toInteger(process.env.IFTTT_WEBHOOK_MAXIMUN_LENGTH_PER_REQUEST);
         const requestInterval = toInteger(process.env.IFTTT_WEBHOOK_REQUEST_INTERVAL);
 
@@ -83,7 +82,7 @@ class PuppeteerCrawler {
             
             console.log(`sending webhook ${i/limitPerReq}/${metaDataList.length / limitPerReq}`)
             try {
-                await got.post(process.env.IFTTT_GISAID_WEBHOOK_URL, {
+                await got.post(process.env.iftttUrl, {
                     json: {
                         value1: payload,
                     },
