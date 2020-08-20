@@ -6,7 +6,7 @@ const assert = require("assert");
 
 const PuppeteerCrawler = require("./PuppeteerCrawler");
 require("dotenv").config();
-require("./utils")();
+require("../utils")();
 
 class GisaidCrawler extends PuppeteerCrawler {
     constructor() {super()}
@@ -72,7 +72,7 @@ class GisaidCrawler extends PuppeteerCrawler {
             );
             if (newDataList.length != 0) {
                 //
-                await this.sendMetaDataList(newDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
+                //await this.sendMetaDataList(newDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
                 //eventLog 초기화
                 await this.insertEventLog(newDataList);
                 console.log(
@@ -86,7 +86,7 @@ class GisaidCrawler extends PuppeteerCrawler {
                 console.log(
                     `found ${unsentDataList.length} number of unsent metaData`
                 );
-                await this.sendMetaDataList(unsentDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
+                //await this.sendMetaDataList(unsentDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
                 //eventLog에 저장한다
                 await this.insertEventLog(unsentDataList);
                 console.log(
