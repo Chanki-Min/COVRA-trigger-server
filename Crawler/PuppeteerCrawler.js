@@ -3,7 +3,8 @@ const userAgent = require("user-agents");
 const puppeteer = require("puppeteer");
 const MongoClient = require("mongodb").MongoClient;
 const got = require("got");
-const { toInteger } = require("lodash");
+const { gzip, ungzip } = require("node-gzip");
+const { toInteger, ceil } = require("lodash");
 
 require("dotenv").config();
 require("../utils")();
@@ -79,13 +80,14 @@ class PuppeteerCrawler {
 
         for(let i=0; i<metaDataList.length; i+=limitPerReq) {
             const payload = i+limitPerReq < metaDataList.length ? metaDataList.slice(i, i+limitPerReq) : metaDataList.slice(i, metaDataList.length);
-            
-            console.log(`sending webhook ${i/limitPerReq}/${metaDataList.length / limitPerReq}`)
+            const compressedPayloadString = (await gzip(JSON.stringify(payload))).toString('base64');
+
+            console.log(`sending webhook ${i/limitPerReq}/${ceil(metaDataList.length / limitPerReq)}`)
             try {
-                await got.post(process.env.iftttUrl, {
+                await got.post(iftttUrl, {
                     json: {
-                        value1: payload,
-                    },
+                        value1: compressedPayloadString
+                    }
                 });
             } catch(e) {
                 console.error(e);
