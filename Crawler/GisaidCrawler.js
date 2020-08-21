@@ -81,7 +81,7 @@ class GisaidCrawler extends PuppeteerCrawler {
                 console.log("nothing to send, terminating crawler");
             }
         } else {
-            if (unsentDataList != null) {
+            if (unsentDataList.length != 0) {
                 console.log(
                     `found ${unsentDataList.length} number of unsent metaData`
                 );
@@ -178,7 +178,7 @@ class GisaidCrawler extends PuppeteerCrawler {
                 },
                 null
             );
-            return unsentDataListCursor.next();
+            return unsentDataListCursor.toArray();
         }
     }
 
