@@ -92,7 +92,9 @@ class PuppeteerCrawler {
             } catch(e) {
                 console.error(e);
             }
-            await new Promise(r => setTimeout(r, requestInterval));
+            if(i<metaDataList.length) {
+                await new Promise(r => setTimeout(r, requestInterval));
+            }
         }
     }
 };
