@@ -111,15 +111,16 @@ class WhoCrawler extends PuppeteerCrawler {
         const collection = this.whoDB.collection(
             process.env.MONGO_WHO_COLLECTION_EVENT_LOG
         );
-        await collection.insertMany([eventLog], function (err, result) {
-            if (err != null) {
-                console.log(err, result);
-            }
-            assert(1, result.insertedCount);
+
+        try {
+            const result = await collection.insertMany([eventLog], null);
+            assert(metaDataList.length, result.insertedCount);
             console.log(
                 `${result.insertedCount} data inserted successfully to ${process.env.MONGO_WHO_DB_NAME}/${process.env.MONGO_WHO_COLLECTION_EVENT_LOG} collection`
             );
-        });
+        } catch(error) {
+            console.error(error);
+        }
     }
 
     async insertManyWhoMetaData(metaDataList) {
@@ -133,15 +134,15 @@ class WhoCrawler extends PuppeteerCrawler {
             process.env.MONGO_WHO_COLLECTION_METADATA
         );
 
-        await collection.insertMany(metaDataList, function (err, result) {
-            if (err != null) {
-                console.log(err, result);
-            }
+        try {
+            const result = await collection.insertMany(metaDataList, null);
             assert(metaDataList.length, result.insertedCount);
             console.log(
                 `${result.insertedCount} data inserted successfully to ${process.env.MONGO_WHO_DB_NAME}/${process.env.MONGO_WHO_COLLECTION_METADATA} collection`
             );
-        });
+        } catch(error) {
+            console.error(error);
+        }
     }
 
     async findLatestMetaDataByEventLog() {
@@ -200,7 +201,7 @@ class WhoCrawler extends PuppeteerCrawler {
         const aggregateCursor = collection.aggregate(agg, null);
 
         const result = await aggregateCursor.next();
-        return result._id;
+        return result !== null ? result._id : null;
     }
 
     async downloadWhoCsv(dirPath) {

@@ -71,8 +71,7 @@ class GisaidCrawler extends PuppeteerCrawler {
                 `eventLog collection doesn't have data. sending newDataList, length : ${newDataList.length}`
             );
             if (newDataList.length != 0) {
-                //
-                //await this.sendMetaDataList(newDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
+                await this.sendMetaDataList(newDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
                 //eventLog 초기화
                 await this.insertEventLog(newDataList);
                 console.log(
@@ -86,7 +85,7 @@ class GisaidCrawler extends PuppeteerCrawler {
                 console.log(
                     `found ${unsentDataList.length} number of unsent metaData`
                 );
-                //await this.sendMetaDataList(unsentDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
+                await this.sendMetaDataList(unsentDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
                 //eventLog에 저장한다
                 await this.insertEventLog(unsentDataList);
                 console.log(
@@ -109,15 +108,15 @@ class GisaidCrawler extends PuppeteerCrawler {
         const collection = this.gisaidDB.collection(
             process.env.MONGO_GISAID_COLLECTION_EVENT_LOG
         );
-        await collection.insertMany([eventLog], function (err, result) {
-            if (err != null) {
-                console.log(err, result);
-            }
+        try {
+            const result = await collection.insertMany([eventLog], null);
             assert(metaDataList.length, result.insertedCount);
             console.log(
                 `${result.insertedCount} data inserted successfully to ${process.env.MONGO_GISAID_DB_NAME}/${process.env.MONGO_GISAID_COLLECTION_EVENT_LOG} collection`
             );
-        });
+        } catch(error) {
+            console.error(error);
+        }
     }
 
     /**
@@ -135,16 +134,15 @@ class GisaidCrawler extends PuppeteerCrawler {
         const collection = this.gisaidDB.collection(
             process.env.MONGO_GISAID_COLLECTION_METADATA
         );
-
-        await collection.insertMany(metaDataList, function (err, result) {
-            if (err != null) {
-                console.log(err, result);
-            }
+        try {
+            const result = await collection.insertMany(metaDataList, null);
             assert(metaDataList.length, result.insertedCount);
             console.log(
                 `${result.insertedCount} data inserted successfully to ${process.env.MONGO_GISAID_DB_NAME}/${process.env.MONGO_GISAID_COLLECTION_METADATA} collection`
             );
-        });
+        } catch(error) {
+            console.error(error);
+        }
     }
 
     async findLatestMetaDataByEventLog() {
