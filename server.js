@@ -15,13 +15,15 @@ const WHO_CRON = process.env.CRWALER_WHO_CRON;
 
     schedule.scheduleJob(GISAID_CRON, async () => {
         console.log("running gisaid crawler");
-        await gisaidCrawler.crawlGisaid();
+        //await gisaidCrawler.crawlGisaid();
     });
 
     schedule.scheduleJob(WHO_CRON, async () => {
         console.log("running who crawler");
-        await whoCrawler.crawlWho();
+        //await whoCrawler.crawlWho();
     });
+    await gisaidCrawler.crawlGisaid();
+    await whoCrawler.crawlWho();
 })();
 
 
