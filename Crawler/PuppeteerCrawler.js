@@ -15,7 +15,7 @@ class PuppeteerCrawler {
 
     async startPuppeteer(enableDevtools = false) {
         // head가 있는 상태로 브라우저 실행,
-        this.browser = await puppeteer.launch({ devtools: enableDevtools });
+        this.browser = await puppeteer.launch({ devtools: enableDevtools, executablePath: process.env.BROWSER_PATH });
         this.page = await this.browser.newPage();
         //CAPTCHA 방어를 회피하기 위해서 user agent를 랜덤으로 생성하여 서버가 알 수 없도록 한다.
         await this.page.setUserAgent(userAgent.toString());
@@ -72,30 +72,6 @@ class PuppeteerCrawler {
         this.client = undefined;
         this.gisaidDB = undefined;
         this.whoDB = undefined;
-    }
-
-    async sendMetaDataList(metaDataList, iftttUrl) {
-        const limitPerReq = toInteger(process.env.IFTTT_WEBHOOK_MAXIMUN_LENGTH_PER_REQUEST);
-        const requestInterval = toInteger(process.env.IFTTT_WEBHOOK_REQUEST_INTERVAL);
-
-        for(let i=0; i<metaDataList.length; i+=limitPerReq) {
-            const payload = i+limitPerReq < metaDataList.length ? metaDataList.slice(i, i+limitPerReq) : metaDataList.slice(i, metaDataList.length);
-            const compressedPayloadString = (await gzip(JSON.stringify(payload))).toString('base64');
-
-            console.log(`sending webhook ${i/limitPerReq}/${ceil(metaDataList.length / limitPerReq)}`)
-            try {
-                await got.post(iftttUrl, {
-                    json: {
-                        value1: compressedPayloadString
-                    }
-                });
-            } catch(e) {
-                console.error(e);
-            }
-            if(i<metaDataList.length) {
-                await new Promise(r => setTimeout(r, requestInterval));
-            }
-        }
     }
 };
 

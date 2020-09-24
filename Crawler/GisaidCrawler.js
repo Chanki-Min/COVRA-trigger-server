@@ -62,61 +62,7 @@ class GisaidCrawler extends PuppeteerCrawler {
             //데이터를 DB에 저장한다
             await this.insertManyMetaData(newDataList);
         }
-        //아직 보내지 않은 데이터를 검색한다
-        const unsentDataList = await this.findLatestMetaDataByEventLog();
-
-        if (unsentDataList === undefined) {
-            //아직 eventLog에 아무런 데이터가 없다면 새로 찾은 데이터만 넣는다.
-            console.warn(
-                `eventLog collection doesn't have data. sending newDataList, length : ${newDataList.length}`
-            );
-            if (newDataList.length != 0) {
-                await this.sendMetaDataList(newDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
-                //eventLog 초기화
-                await this.insertEventLog(newDataList);
-                console.log(
-                    `send ${newDataList.length} data via ifttt webhook`
-                );
-            } else {
-                console.log("nothing to send, terminating crawler");
-            }
-        } else {
-            if (unsentDataList.length != 0) {
-                console.log(
-                    `found ${unsentDataList.length} number of unsent metaData`
-                );
-                await this.sendMetaDataList(unsentDataList, process.env.IFTTT_GISAID_WEBHOOK_URL);
-                //eventLog에 저장한다
-                await this.insertEventLog(unsentDataList);
-                console.log(
-                    `send ${unsentDataList.length} data via ifttt webhook`
-                );
-            } else {
-                console.log("nothing to send, terminating crawler");
-            }
-        }
-
         this.close();
-    }
-
-    async insertEventLog(metaDataList) {
-        const eventLog = {
-            lastData: metaDataList[0],
-            eventAt: new Date(),
-        };
-
-        const collection = this.gisaidDB.collection(
-            process.env.MONGO_GISAID_COLLECTION_EVENT_LOG
-        );
-        try {
-            const result = await collection.insertMany([eventLog], null);
-            assert(metaDataList.length, result.insertedCount);
-            console.log(
-                `${result.insertedCount} data inserted successfully to ${process.env.MONGO_GISAID_DB_NAME}/${process.env.MONGO_GISAID_COLLECTION_EVENT_LOG} collection`
-            );
-        } catch(error) {
-            console.error(error);
-        }
     }
 
     /**
@@ -142,43 +88,6 @@ class GisaidCrawler extends PuppeteerCrawler {
             );
         } catch(error) {
             console.error(error);
-        }
-    }
-
-    async findLatestMetaDataByEventLog() {
-        const eventLogCol = this.gisaidDB.collection(
-            process.env.MONGO_GISAID_COLLECTION_EVENT_LOG
-        );
-        const metaDataCol = this.gisaidDB.collection(
-            process.env.MONGO_GISAID_COLLECTION_METADATA
-        );
-        const agg = [
-            {
-                $sort: {
-                    eventAt: -1,
-                },
-            },
-            {
-                $limit: 1,
-            },
-        ];
-
-        const aggregateCursor = eventLogCol.aggregate(agg, null);
-        const eventLog = await aggregateCursor.next();
-
-        //evntLog 컬렉션에 아무 데이터도 없는 경우
-        if (eventLog === null) {
-            return undefined;
-        } else {
-            const unsentDataListCursor = await metaDataCol.find(
-                {
-                    gisaid_epi_isl: {
-                        $gt: eventLog.lastData.gisaid_epi_isl,
-                    },
-                },
-                null
-            );
-            return unsentDataListCursor.toArray();
         }
     }
 
