@@ -15,6 +15,25 @@ module.exports = function () {
     };
 
     /**
+    * 
+    * @param {String} dirPath : 비울 디렉토리 경로 
+    * @param {String} exceptionFiles : 삭제하지 않을 파일 이름 배열
+    */
+    this.clearDir = async (dirPath, targetExt, exceptionFiles) => {
+       const dir = await fs.promises.readdir(dirPath);
+       const unlinkPromises = dir.map(file => {
+           if(exceptionFiles instanceof Array) {
+               if(exceptionFiles.filter(name => name == file).length === 0 && path.extname(file) == targetExt)
+                   fs.promises.unlink(path.resolve(dirPath, file));
+   
+           } else if (exceptionFiles === undefined)
+               if(path.extname(file) == targetExt)
+                   fs.promises.unlink(path.resolve(dirPath, file))
+       });
+       return Promise.all(unlinkPromises);
+   }
+
+    /**
      * Csv파일을 읽어 정렬한 후에 최신 아이디 이후를 가져온다
      *
      * @param {Buffer} fileBuffer : 읽을 파일 버퍼
@@ -123,6 +142,16 @@ module.exports = function () {
 
         return Math.floor((utc1 - utc2) / _MS_PER_DAY);
     };
+
+    this.wrapAsyncFn = asyncFn => {
+        return (async (req, res, next) => {
+          try {
+            return await asyncFn(req, res, next)
+          } catch (error) {
+            return next(error)
+          }
+        })  
+      }
 
     // this.CovMetaData = class {
     //     /**
