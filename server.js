@@ -21,17 +21,16 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
     schedule.scheduleJob(CRWALER_CRON, async () => {
         console.log("running gisaid crawler");
-        //await gisaidCrawler.crawlGisaid();
-        //await whoCrawler.crawlWho();
-        //await sendIftttTriger(IFTTT_URL, METADATA_URL);
+        await gisaidCrawler.crawlGisaid();
+        await whoCrawler.crawlWho();
+        await sendIftttTriger(IFTTT_URL, METADATA_URL);
     });
 
     //await delay(10000);
-    await gisaidCrawler.crawlGisaid();
-    await whoCrawler.crawlWho();
-    console.log('sending')
-    await sendIftttTriger(IFTTT_URL, GISAID_METADATA_URL, WHO_METADATA_URL);
-    console.log('sended')
+    //await gisaidCrawler.crawlGisaid();
+    //await whoCrawler.crawlWho();
+    //console.log('sending IFTTT trigger')
+    //await sendIftttTriger(IFTTT_URL, GISAID_METADATA_URL, WHO_METADATA_URL);
 })();
 
 app.use(dataRouter);
