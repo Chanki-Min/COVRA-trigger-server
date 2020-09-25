@@ -20,7 +20,7 @@ router.get(
                 res.set({encoding: null}).send(payload);
                 break;
             case 'who':
-                payload = await findAll(dbConnection.gisaidDB, GISAID_COLLECTION);
+                payload = await findAll(dbConnection.whoDB, WHO_COLLECTION);
                 payload = (await gzip(JSON.stringify(payload)));
                 res.set({encoding: null}).send(payload);
                 break;
